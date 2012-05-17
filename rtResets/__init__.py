@@ -1,7 +1,7 @@
 import logging
 import requests
 
-def get_resets(query, credentials, url):
+def get(query, credentials, url):
         q = {'query': query, 'orderby': '-Created', 'format': 's'}
         rs = requests.post(url, data=credentials, params=q)
         if rs.ok:

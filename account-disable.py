@@ -3,7 +3,7 @@
 from Queue import Queue
 from threading import Thread
 
-import RT
+import rtResets
 import sys
 import logging
 import yaml
@@ -29,7 +29,7 @@ if __name__ == '__main__':
     credentials['pass'] = config['rt_password']
 
     account_resets = Queue()
-    for reset in RT.get_resets(config['rt_query'], credentials, config['rt_search']):
+    for reset in rtResets.get(config['rt_query'], credentials, config['rt_search']):
         ticket, uid = reset
         account_resets.put(reset)
         logging.info('Added disable ticket=%s for uid=%s', ticket, uid)
