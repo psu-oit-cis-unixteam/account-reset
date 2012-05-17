@@ -2,3 +2,5 @@ rt_query: Status != 'resolved' AND Status != 'rejected' AND Subject LIKE 'Accoun
 rt_search: https://support.oit.pdx.edu/NoAuth-REST/1.0/search/ticket
 rt_username: 
 rt_password: 
+worker_processes: 2
+log_level: 10
