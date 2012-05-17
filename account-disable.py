@@ -42,7 +42,7 @@ if __name__ == '__main__':
         config = yaml.load(config_file)
 
     logging.basicConfig(
-        format='[AccountReset %(levelname)s] %(asctime)s: %(message)s',
+        format='[account-disable %(levelname)s] %(asctime)s: %(message)s',
         level=config['log_level'],
     )
     
