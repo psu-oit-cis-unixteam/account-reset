@@ -1,11 +1,12 @@
 #!/usr/bin/env python
 
+from Queue import Queue
 from threading import Thread
-import yaml
+
 import requests
 import sys
 import logging
-from Queue import Queue
+import yaml
 
 def get_resets(query, credentials, url):
         q = {'query': query, 'orderby': '-Created', 'format': 's'}
