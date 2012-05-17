@@ -4,7 +4,7 @@ from Queue import Queue
 from threading import Thread
 
 import core_disables
-import rtResets
+import rt_util
 import sys
 import logging
 import yaml
@@ -35,7 +35,7 @@ if __name__ == '__main__':
     credentials['pass'] = config['rt_password']
 
     account_resets = Queue()
-    for reset in rtResets.get(config['rt_query'], credentials, config['rt_search']):
+    for reset in rt_util.get(config['rt_query'], credentials, config['rt_search']):
         ticket, uid = reset
         logging.debug('Examining reset ticket=%s for uid=%s', ticket, uid)
         for disableable in disableables:
