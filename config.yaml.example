@@ -1,0 +1,4 @@
+rt_query: Status != 'resolved' AND Status != 'rejected' AND Subject LIKE 'Account Permissions Reset Request'
+rt_search: https://support.oit.pdx.edu/NoAuth-REST/1.0/search/ticket
+rt_username: 
+rt_password: 
