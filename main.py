@@ -4,6 +4,7 @@ from threading import Thread
 import yaml
 import requests
 import sys
+import logging
 from Queue import Queue
 
 def get_resets(query, credentials, url):
@@ -24,18 +25,25 @@ def parse_search(response):
         # the ticket id is the first chunk before ': '
         ticket = req.split(': ')[0]
         # the account is the last word in req
-        account = req.split(' ')[-1]
-        yield (ticket, account)
+        uid = req.split(' ')[-1]
+        logging.debug('Yielding ticket=%s and user=%s', ticket, uid)
+        yield (ticket, uid)
 
 def disabler():
+    logging.debug('New disabler thread spawned.')
     while True:
         ticket, uid = account_resets.get()
-        print "Ticket: {}\nUser: {}\n".format(ticket, uid)
+        logging.info('Working on ticket=%s for uid=%s', ticket, uid)
         account_resets.task_done()
 
 if __name__ == '__main__':
     with open('./config.yaml', 'r') as config_file:
         config = yaml.load(config_file)
+
+    logging.basicConfig(
+        format='[AccountReset %(levelname)s] %(asctime)s: %(message)s',
+        level=config['log_level'],
+    )
     
     credentials = dict()
     credentials['user'] = config['rt_username']
@@ -43,7 +51,9 @@ if __name__ == '__main__':
 
     account_resets = Queue()
     for reset in get_resets(config['rt_query'], credentials, config['rt_search']):
+        ticket, uid = reset
         account_resets.put(reset)
+        logging.info('Added disable ticket=%s for uid=%s', ticket, uid)
 
     for i in range(config['worker_processes']):
         t = Thread(target=disabler)
