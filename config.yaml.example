@@ -4,3 +4,6 @@ rt_username:
 rt_password: 
 worker_processes: 2
 log_level: 10
+ldap_basedn:
+ldap_server:
+ldap_cacert:
