@@ -3,12 +3,12 @@
 from Queue import Queue
 from threading import Thread
 
+import core_disables
 import rtResets
 import sys
 import logging
 import yaml
 
-from core_disables import DisableableBase
 
 def disabler():
     logging.debug('New disabler thread spawned.')
@@ -27,7 +27,7 @@ if __name__ == '__main__':
     )
     
     # use introspection to load disableable implementations
-    disableables = [disableable.__name__ for disableable in DisableableBase.__subclasses__()]
+    disableables = [subclass.__name__ for subclass in core_disables.DisableableBase.__subclasses__()]
     logging.info('Loaded disableables: %s', ' '.join(disableables))
     
     credentials = dict()
@@ -37,8 +37,13 @@ if __name__ == '__main__':
     account_resets = Queue()
     for reset in rtResets.get(config['rt_query'], credentials, config['rt_search']):
         ticket, uid = reset
+        logging.debug('Examining reset ticket=%s for uid=%s', ticket, uid)
+        for disableable in disableables:
+            a_disableable = getattr(core_disables, disableable)
+            instance = a_disableable(uid)
+            logging.info('Inspecting entitlements for uid=%s, disableable=%s, ticket=%s', uid, disableable, ticket)
+            instance.entitlements()
         account_resets.put(reset)
-        logging.info('Added disable ticket=%s for uid=%s', ticket, uid)
 
     for i in range(config['worker_processes']):
         t = Thread(target=disabler)
