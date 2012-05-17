@@ -8,6 +8,8 @@ import sys
 import logging
 import yaml
 
+from core_disables import DisableableBase
+
 def disabler():
     logging.debug('New disabler thread spawned.')
     while True:
@@ -23,6 +25,10 @@ if __name__ == '__main__':
         format='[account-disable %(levelname)s] %(asctime)s: %(message)s',
         level=config['log_level'],
     )
+    
+    # use introspection to load disableable implementations
+    disableables = [disableable.__name__ for disableable in DisableableBase.__subclasses__()]
+    logging.info('Loaded disableables: %s', ' '.join(disableables))
     
     credentials = dict()
     credentials['user'] = config['rt_username']
