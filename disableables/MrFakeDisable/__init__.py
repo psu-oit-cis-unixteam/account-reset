@@ -13,4 +13,8 @@ class MrFakeDisable(DisableableBase):
            Only sometimes be successful in the fake implementation.
         """
         # russian roulette failure
-        return choice([True, True, False, False, False])
+        win = choice([True, True, False])
+        if not win:
+            raise Exception("FAAAAAIL")
+        else:
+            return True
