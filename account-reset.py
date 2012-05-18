@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+from pkgutil import iter_modules as pkg_iter
 from Queue import Queue
 from threading import Thread
 
@@ -9,7 +10,6 @@ import rt_util
 import sys
 import logging
 import os.path
-import pkgutil
 import yaml
 
 ## CRAZY DYNAMIC MODULE LOADING GOING ON RIGHT HERE
@@ -22,7 +22,7 @@ def _load_module(module, package):
 # get the path of the disableables module directory
 disableable_path = os.path.dirname(disableables.__file__)
 # enumerate the modules in the disableables directory
-implementations = [name for _, name, _ in pkgutil.iter_modules([disableable_path])]
+implementations = [name for _, name, _ in pkg_iter([disableable_path])]
 # This is equivelant to: from disableables.MrFakeDisable import MrFakeDisable
 for module in implementations:
     vars()[module] = _load_module(module, 'disableables')
@@ -71,9 +71,11 @@ if __name__ == '__main__':
                 # try to instantiate our disableable
                 instance = a_disableable(uid)
             except TypeError as err:
-                # this will happen if the implementation doesn't comply with the ABC
+                # happenis if the implementation doesn't comply with the ABC
                 logging.error(err)
-            logging.info('Inspecting entitlements for uid=%s, disableable=%s, ticket=%s', uid, implementation, ticket)
+            logging.info(
+                'Inspecting entitlements for uid=%s, disableable=%s, ticket=%s',
+                uid, implementation, ticket)
             instance.entitlements()
         account_resets.put(reset)
 
