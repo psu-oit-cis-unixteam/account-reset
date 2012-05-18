@@ -51,6 +51,7 @@ if __name__ == '__main__':
     credentials['user'] = config['rt_username']
     credentials['pass'] = config['rt_password']
 
+    # set up the reset queue
     account_resets = Queue()
 
     # start the workers
@@ -60,7 +61,7 @@ if __name__ == '__main__':
         t.daemon = True
         t.start()
 
-    # make a queue and putting stuff in it
+    # get reset requests from rt
     for reset in rt_util.get(config['rt_query'], credentials, config['rt_search']):
         ticket, uid = reset
         logging.debug('Examining reset ticket=%s for uid=%s', ticket, uid)
