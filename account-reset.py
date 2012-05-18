@@ -7,7 +7,6 @@ from threading import Thread
 import disableables
 
 import rt_util
-import sys
 import logging
 import os.path
 import yaml
@@ -32,7 +31,8 @@ def disabler():
     logging.debug('New disabler thread spawned.')
     while True:
         task = account_resets.get()
-        logging.info('Working on ticket=%s for uid=%s', task['ticket'], task['uid'])
+        log_args = (task['ticket'], task['uid'])
+        logging.info('Working on ticket=%s for uid=%s', *log_args)
         instance = task['disableable']
         # get the user's entitlements for this implementation
         entitlements = instance.entitlements()
@@ -44,7 +44,9 @@ def disabler():
             try:
                 instance.disable(entitlement)
             except Exception as err:
-                logging.error('%s: uid=%s entitlement=%s not disabled', *log_args)
+                logging.debug(err)
+                logging.error('%s: uid=%s entitlement=%s not disabled',
+                              *log_args)
                 # re-raise to deal with this elsewhere
                 raise
             else:
@@ -78,7 +80,8 @@ if __name__ == '__main__':
         t.start()
 
     # get reset requests from rt
-    for reset in rt_util.get(config['rt_query'], credentials, config['rt_search']):
+    query, search = (config['rt_query'], config['rt_search'])
+    for reset in rt_util.get(query, credentials, search):
         task = dict()
         task['ticket'], task['uid'] = reset
         for implementation in implementations:
