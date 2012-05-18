@@ -7,25 +7,20 @@ from threading import Thread
 import disableables
 
 import rt_util
+import imp
 import logging
 import os.path
 import yaml
 
-## CRAZY DYNAMIC MODULE LOADING GOING ON RIGHT HERE
-def _load_module(module, package):
-    """Load a module programmatically."""
-    package_name = "{}.{}".format(package, module)
-    _temp = __import__(package_name, fromlist=[module])
-    return getattr(_temp, module)
-
 # get the path of the disableables module directory
-disableable_path = os.path.dirname(disableables.__file__)
+_, disableable_path, _ = imp.find_module('disableables')
 # enumerate the modules in the disableables directory
 implementations = [name for _, name, _ in pkg_iter([disableable_path])]
 # This is equivelant to: from disableables.MrFakeDisable import MrFakeDisable
 for module in implementations:
-    vars()[module] = _load_module(module, 'disableables')
-##
+    f, filename, description = imp.find_module(module, disableables.__path__)
+    pp = imp.load_module("{0}.{0}".format(module), f, filename, description)
+    vars()[module] = getattr(pp, module)
 
 def disabler():
     logging.debug('New disabler thread spawned.')
