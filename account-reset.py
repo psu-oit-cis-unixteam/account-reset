@@ -52,6 +52,15 @@ if __name__ == '__main__':
     credentials['pass'] = config['rt_password']
 
     account_resets = Queue()
+
+    # start the workers
+    logging.debug('Spawning %s workers.', config['worker_processes'])
+    for i in range(config['worker_processes']):
+        t = Thread(target=disabler)
+        t.daemon = True
+        t.start()
+
+    # make a queue and putting stuff in it
     for reset in rt_util.get(config['rt_query'], credentials, config['rt_search']):
         ticket, uid = reset
         logging.debug('Examining reset ticket=%s for uid=%s', ticket, uid)
@@ -67,7 +76,3 @@ if __name__ == '__main__':
             instance.entitlements()
         account_resets.put(reset)
 
-    for i in range(config['worker_processes']):
-        t = Thread(target=disabler)
-        t.daemon = True
-        t.start()
