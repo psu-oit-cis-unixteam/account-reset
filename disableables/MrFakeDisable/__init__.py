@@ -1,4 +1,5 @@
 from disableables import DisableableBase
+from random import choice
 import logging
 
 class MrFakeDisable(DisableableBase):
@@ -8,5 +9,8 @@ class MrFakeDisable(DisableableBase):
         return self.entitlements
 
     def disable(self, entitlement):
-        # always successful in the fake implementation
-        return True
+        """Disable an entitlement.
+           Only sometimes be successful in the fake implementation.
+        """
+        # russian roulette failure
+        return choice([True, True, False, False, False])
