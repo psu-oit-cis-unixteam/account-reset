@@ -88,9 +88,11 @@ if __name__ == '__main__':
                     instance.disable(entitlement)
                 except Exception as err:
                     logging.error('%s: uid=%s entitlement=%s not disabled',
-                                  *log_args)
+                                  implementation,
+                                  uid,
+                                  entitlement)
                     # re-raise to deal with this elsewhere
                     raise
-                logging.info('%s: uid=%s lost entitlement=%s', *log_args)
+                logging.info('%s: uid=%s lost entitlement=%s', implementation, uid, entitlement)
         account_resets.put(reset)
 
