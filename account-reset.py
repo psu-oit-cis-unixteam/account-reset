@@ -31,8 +31,24 @@ for module in implementations:
 def disabler():
     logging.debug('New disabler thread spawned.')
     while True:
-        ticket, uid = account_resets.get()
-        logging.info('Working on ticket=%s for uid=%s', ticket, uid)
+        task = account_resets.get()
+        logging.info('Working on ticket=%s for uid=%s', task['ticket'], task['uid'])
+        instance = task['disableable']
+        # get the user's entitlements for this implementation
+        entitlements = instance.entitlements()
+        log_args = (task['implementation'], task['uid'], entitlements)
+        logging.info('%s: uid=%s has entitlements="%s"', *log_args)
+            
+        for entitlement in entitlements:
+            log_args = (task['implementation'], task['uid'], entitlement)
+            try:
+                instance.disable(entitlement)
+            except Exception as err:
+                logging.error('%s: uid=%s entitlement=%s not disabled', *log_args)
+                # re-raise to deal with this elsewhere
+                raise
+            else:
+                logging.info('%s: uid=%s lost entitlement=%s', *log_args)
         account_resets.task_done()
 
 if __name__ == '__main__':
@@ -63,36 +79,18 @@ if __name__ == '__main__':
 
     # get reset requests from rt
     for reset in rt_util.get(config['rt_query'], credentials, config['rt_search']):
-        ticket, uid = reset
-        logging.debug('Examining reset ticket=%s for uid=%s', ticket, uid)
+        task = dict()
+        task['ticket'], task['uid'] = reset
         for implementation in implementations:
             a_disableable = vars()[implementation]
+            task['implementation'] = implementation
             try:
                 # try to instantiate our disableable
-                instance = a_disableable(uid)
+                task['disableable'] = a_disableable(task['uid'])
             except TypeError as err:
-                # happenis if the implementation doesn't comply with the ABC
+                # happens if the implementation doesn't comply with the ABC
                 logging.error(err)
-            logging.info('Inspecting uid=%s, disableable=%s, ticket=%s', 
-                         uid, 
-                         implementation,
-                         ticket)
-            # get the user's entitlements for this implementation
-            entitlements = instance.entitlements()
+            else:
+                account_resets.put(task)
 
-            log_args = (implementation, uid, entitlements)
-            logging.info('%s: uid=%s has entitlements="%s"', *log_args)
-            
-            for entitlement in entitlements:
-                try:
-                    instance.disable(entitlement)
-                except Exception as err:
-                    logging.error('%s: uid=%s entitlement=%s not disabled',
-                                  implementation,
-                                  uid,
-                                  entitlement)
-                    # re-raise to deal with this elsewhere
-                    raise
-                logging.info('%s: uid=%s lost entitlement=%s', implementation, uid, entitlement)
-        account_resets.put(reset)
-
+    account_resets.join()
