@@ -19,8 +19,8 @@ implementations = [name for _, name, _ in pkg_iter([disableable_path])]
 # This is equivelant to: from disableables.MrFakeDisable import MrFakeDisable
 for module in implementations:
     f, filename, description = imp.find_module(module, disableables.__path__)
-    pp = imp.load_module("{0}.{0}".format(module), f, filename, description)
-    vars()[module] = getattr(pp, module)
+    _temp = imp.load_module("{0}.{0}".format(module), f, filename, description)
+    vars()[module] = getattr(_temp, module)
 
 def disabler():
     logging.debug('New disabler thread spawned.')
