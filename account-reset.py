@@ -44,11 +44,9 @@ def disabler():
             try:
                 instance.disable(entitlement)
             except Exception as err:
-                logging.debug(err)
-                logging.error('%s: uid=%s entitlement=%s not disabled',
+                log_args = (task['implementation'], task['uid'], entitlement, err)
+                logging.error('%s: uid=%s entitlement=%s not disabled, error: %s',
                               *log_args)
-                # re-raise to deal with this elsewhere
-                raise
             else:
                 logging.info('%s: uid=%s lost entitlement=%s', *log_args)
         account_resets.task_done()
