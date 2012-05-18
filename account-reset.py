@@ -3,12 +3,30 @@
 from Queue import Queue
 from threading import Thread
 
-import core_disables
+import disableables
+
 import rt_util
 import sys
 import logging
+import os.path
+import pkgutil
 import yaml
 
+## CRAZY DYNAMIC MODULE LOADING GOING ON RIGHT HERE
+def _load_module(module, package):
+    """Load a module programmatically."""
+    package_name = "{}.{}".format(package, module)
+    _temp = __import__(package_name, fromlist=[module])
+    return getattr(_temp, module)
+
+# get the path of the disableables module directory
+disableable_path = os.path.dirname(disableables.__file__)
+# enumerate the modules in the disableables directory
+implementations = [name for _, name, _ in pkgutil.iter_modules([disableable_path])]
+# This is equivelant to: from disableables.MrFakeDisable import MrFakeDisable
+for module in implementations:
+    vars()[module] = _load_module(module, 'disableables')
+##
 
 def disabler():
     logging.debug('New disabler thread spawned.')
@@ -26,9 +44,8 @@ if __name__ == '__main__':
         level=config['log_level'],
     )
     
-    # use introspection to load disableable implementations
-    disableables = [subclass.__name__ for subclass in core_disables.DisableableBase.__subclasses__()]
-    logging.info('Loaded disableables: %s', ' '.join(disableables))
+    #implemented_disableables = implementations
+    logging.info('Loaded disableables: %s', ' '.join(implementations))
     
     credentials = dict()
     credentials['user'] = config['rt_username']
@@ -38,10 +55,15 @@ if __name__ == '__main__':
     for reset in rt_util.get(config['rt_query'], credentials, config['rt_search']):
         ticket, uid = reset
         logging.debug('Examining reset ticket=%s for uid=%s', ticket, uid)
-        for disableable in disableables:
-            a_disableable = getattr(core_disables, disableable)
-            instance = a_disableable(uid)
-            logging.info('Inspecting entitlements for uid=%s, disableable=%s, ticket=%s', uid, disableable, ticket)
+        for implementation in implementations:
+            a_disableable = vars()[implementation]
+            try:
+                # try to instantiate our disableable
+                instance = a_disableable(uid)
+            except TypeError as err:
+                # this will happen if the implementation doesn't comply with the ABC
+                logging.error(err)
+            logging.info('Inspecting entitlements for uid=%s, disableable=%s, ticket=%s', uid, implementation, ticket)
             instance.entitlements()
         account_resets.put(reset)
 
