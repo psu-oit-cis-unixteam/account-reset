@@ -73,9 +73,24 @@ if __name__ == '__main__':
             except TypeError as err:
                 # happenis if the implementation doesn't comply with the ABC
                 logging.error(err)
-            logging.info(
-                'Inspecting entitlements for uid=%s, disableable=%s, ticket=%s',
-                uid, implementation, ticket)
-            instance.entitlements()
+            logging.info('Inspecting uid=%s, disableable=%s, ticket=%s', 
+                         uid, 
+                         implementation,
+                         ticket)
+            # get the user's entitlements for this implementation
+            entitlements = instance.entitlements()
+
+            log_args = (implementation, uid, entitlements)
+            logging.info('%s: uid=%s has entitlements="%s"', *log_args)
+            
+            for entitlement in entitlements:
+                try:
+                    instance.disable(entitlement)
+                except Exception as err:
+                    logging.error('%s: uid=%s entitlement=%s not disabled',
+                                  *log_args)
+                    # re-raise to deal with this elsewhere
+                    raise
+                logging.info('%s: uid=%s lost entitlement=%s', *log_args)
         account_resets.put(reset)
 
