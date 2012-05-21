@@ -1,18 +1,9 @@
-import abc
 import logging
 
-class DisableableBase(object):
-    __metaclass__ = abc.ABCMeta
+from celery.task import Task
 
-    def __init__(self, uid):
-        self.uid = uid
+class Disableable(Task):
+    abstract = True
 
-    @abc.abstractmethod
-    def entitlements(self):
-        """Populate self.entitlement_list with self.uid's entitlements"""
-        return
-
-    @abc.abstractmethod
-    def disable(self, entitlement):
-        """Disable the entitlement."""
-        return
+    def after_return(self, *args, **kwargs):
+        print("Returned: %r" % (self.request, ))
