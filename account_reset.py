@@ -38,7 +38,11 @@ def main():
         logging.info('Working on ticket=%s for uid=%s', ticket, uid)
         for module in IMPLEMENTATIONS:
             instance = vars()[module]
-            print instance.get.delay(ticket, uid)
+            instance_config = dict()
+            for key in instance.CONFIG:
+                instance_config[key] = config[key]
+            print instance_config
+            print instance.disable.delay(ticket, uid, config)
 
 
 if __name__ == '__main__':

@@ -7,3 +7,5 @@ log_level: 10
 ldap_basedn:
 ldap_server:
 ldap_cacert:
+username:
+password:
