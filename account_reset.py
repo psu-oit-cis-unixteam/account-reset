@@ -35,7 +35,7 @@ def main():
     query, search = (config['rt_query'], config['rt_search'])
     for reset in rt.get(query, credentials, search):
         ticket, uid = reset
-        logging.info('Working on ticket=%s for uid=%s', *reset)
+        logging.info('Working on ticket=%s for uid=%s', ticket, uid)
         for module in IMPLEMENTATIONS:
             instance = vars()[module]
             print instance.get.delay(ticket, uid)
