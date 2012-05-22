@@ -1,15 +1,19 @@
 #!/usr/bin/env python
+""" Load the disableable implementations then enqueue disabling activities."""
 
 from celeryconfig import get_implementations
 import disableables
 import rt
 
-import imp
+from imp import find_module, load_module
 import logging
 import yaml
+    
+IMPLEMENTATIONS = get_implementations('disableables', False)
 
-
-if __name__ == '__main__':
+def main():
+    """Load a config, load modules, get tasks from RT dispatch disable tasks
+       for each of them."""
     with open('./config.yaml', 'r') as config_file:
         config = yaml.load(config_file)
 
@@ -22,17 +26,20 @@ if __name__ == '__main__':
     credentials['user'] = config['rt_username']
     credentials['pass'] = config['rt_password']
 
-    implementations = get_implementations('disableables', False)
-    
-    for module in implementations:
-        f, filename, description = imp.find_module("{0}".format(module), disableables.__path__)
-        vars()[module] = imp.load_module('disableables.{0}'.format(module), f, filename, description)
+    for module in IMPLEMENTATIONS:
+        parent = "disableables.{0}".format(module)
+        fhn, filename, description = find_module(module, disableables.__path__)
+        vars()[module] = load_module(parent, fhn, filename, description)
 
     # get reset requests from rt
     query, search = (config['rt_query'], config['rt_search'])
     for reset in rt.get(query, credentials, search):
         ticket, uid = reset
         logging.info('Working on ticket=%s for uid=%s', *reset)
-        for module in implementations:
+        for module in IMPLEMENTATIONS:
             instance = vars()[module]
-            print instance.get.delay(uid)
+            print instance.get.delay(ticket, uid)
+
+
+if __name__ == '__main__':
+    main()
