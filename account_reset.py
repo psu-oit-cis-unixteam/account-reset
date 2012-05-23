@@ -41,7 +41,6 @@ def main():
             instance_config = dict()
             for key in instance.CONFIG:
                 instance_config[key] = config[key]
-            print instance_config
             print instance.disable.delay(ticket, uid, config)
 
 
