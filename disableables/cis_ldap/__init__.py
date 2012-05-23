@@ -46,8 +46,16 @@ def get(uid, config, callback):
                                   ['dn'])
     # every user has a group matching their username, it looks like this
     uid_group = ('cn={0},ou=Group,{1}'.format(uid, config['ldap_basedn']), {})
-    # we do not want to remove this group, so ditch it from the list
-    del posixgroups[posixgroups.index(uid_group)]
+    try:
+        # see if the user has a group with the same name as themself
+        uid_group_index = posixgroups.index(uid_group)
+    except ValueError:
+        # woah funky
+        logging.error("uid=%s lacks a their selfsame group=%s", uid, uid_group)
+    else:
+        # we do not want to remove this group, so ditch it from the list
+        del posixgroups[uid_group_index]
+
     logging.info("%s has groups='%s'", uid, str(posixgroups))
     psupublish  =   conn.search_s(config['ldap_basedn'],
                                   ldap.SCOPE_SUBTREE,
@@ -60,4 +68,7 @@ def get(uid, config, callback):
 def remove(uid, config, items):
     netgroups, posixgroups, psupublish = items
     nistriple = "(-,{},-)".format(uid)
-    mods = list()
+    for group in posixgroups:
+        logging.info('Removing uid=%s from group=%s', uid, group)
+    for group in netgroups:
+        logging.info('Removing uid=%s from netgroup=%s', uid, group)
