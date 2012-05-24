@@ -51,7 +51,7 @@ def get(uid, config, callback):
         uid_group_index = posixgroups.index(uid_group)
     except ValueError:
         # woah funky
-        logging.error("uid=%s lacks a their selfsame group=%s", uid, uid_group)
+        logging.error("uid=%s lacks a selfsame group=%s", uid, uid_group)
     else:
         # we do not want to remove this group, so ditch it from the list
         del posixgroups[uid_group_index]
@@ -68,7 +68,13 @@ def get(uid, config, callback):
 def remove(uid, config, items):
     netgroups, posixgroups, psupublish = items
     nistriple = "(-,{},-)".format(uid)
+    memberuid = "memberuid={}".format(uid)
+    mods = dict()
     for group in posixgroups:
-        logging.info('Removing uid=%s from group=%s', uid, group)
-    for group in netgroups:
-        logging.info('Removing uid=%s from netgroup=%s', uid, group)
+        dn, _ = group
+        mods[dn] = (ldap.MOD_DELETE, 'memberUid', memberuid)
+        logging.debug('Queueing removal of uid=%s from group=%s', uid, dn)
+    for dn in netgroups:
+        mods[dn] = (ldap.MOD_DELETE, 'nisNetgroupTriple', nistriple)
+        logging.debug('Queueing removal of uid=%s from netgroup=%s', uid, dn)
+    logging.info('Modifications for uid=%s is modlist=%s', uid, str(mods))
