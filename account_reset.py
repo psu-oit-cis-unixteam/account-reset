@@ -6,6 +6,7 @@ import disableables
 import rt
 
 from imp import find_module, load_module
+from time import sleep
 import logging
 import yaml
     
@@ -36,13 +37,26 @@ def main():
     for reset in rt.get(query, credentials, search):
         ticket, uid = reset
         logging.info('Working on ticket=%s for uid=%s', ticket, uid)
+        tasks = dict()
         for module in IMPLEMENTATIONS:
             instance = vars()[module]
             instance_config = dict()
             for key in instance.CONFIG:
                 instance_config[key] = config[key]
-            print instance.disable.delay(ticket, uid, config)
-
+            task = instance.disable.delay(ticket, uid, config)
+            tasks[ticket] = (uid, task)
+            print "RT#{0}: {1} is {2}".format(ticket, uid, task.status)
+        while True:
+            if len(tasks) < 1: break
+            done = list()
+            for ticket in tasks.iterkeys():
+                uid, task = tasks[ticket]
+                if task.status == "SUCCESS":
+                    print "RT#{0}: {1} is {2}".format(ticket, uid, task.status)
+                    done.append(ticket)
+            # can't delete dict items during iteration, causes runtime error
+            for ticket in done:
+                del tasks[ticket]
 
 if __name__ == '__main__':
     main()
