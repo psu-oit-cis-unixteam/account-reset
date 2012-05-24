@@ -30,7 +30,7 @@ def _setup(config):
 @task(base=Disableable)
 def disable(ticket, uid, config):
     print "RT#{0}: disabling LDAP permissions for {1}".format(ticket, uid)
-    get.delay(uid, config=config, callback=subtask(remove))
+    return get.delay(uid, config=config, callback=subtask(remove))
 
 @task(base=Disableable)
 def get(uid, config, callback):
@@ -60,13 +60,14 @@ def get(uid, config, callback):
     psupublish  =   conn.search_s(config['ldap_basedn'],
                                   ldap.SCOPE_SUBTREE,
                                   'uid={}'.format(uid),
-                                  ['dn', 'psupublish'])
+                                  ['psupublish'])
+    logging.info("psupublish=%s for uid=%s", str(psupublish[0]), uid)
     conn.unbind()
-    subtask(callback).delay(uid, config, (netgroups, posixgroups, psupublish))
+    return subtask(callback).delay(uid, config, (netgroups, posixgroups, psupublish[0]))
 
 @task(base=Disableable)
 def remove(uid, config, items):
-    netgroups, posixgroups, psupublish = items
+    netgroups, posixgroups, (userdn, psupublish) = items
     nistriple = "(-,{},-)".format(uid)
     memberuid = "memberuid={}".format(uid)
     mods = dict()
@@ -77,4 +78,7 @@ def remove(uid, config, items):
     for dn in netgroups:
         mods[dn] = (ldap.MOD_DELETE, 'nisNetgroupTriple', nistriple)
         logging.debug('Queueing removal of uid=%s from netgroup=%s', uid, dn)
+    mods[userdn] = (ldap.MOD_REPLACE,  'psuPublish', 'no')
     logging.info('Modifications for uid=%s is modlist=%s', uid, str(mods))
+    # just always return true for now
+    return True
