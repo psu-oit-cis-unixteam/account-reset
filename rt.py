@@ -6,7 +6,7 @@ import requests
 def get(query, credentials, url):
     """Query RT via the API.
     query: the RTQL query
-    credentials: a username, password tuple
+    credentials: a user, pass dict
     url: base RT url"""
     url = "{}/search/ticket".format(url)
     query_string = {'query': query, 'orderby': '-Created', 'format': 's'}
@@ -30,7 +30,7 @@ def parse_search(response):
 
 def split_response(rt_response):
     """RT sends it's own 'status' in addition to content.
-       This function returns a tuple of status and message"""
+       This function returns the message and raises an exception on failure"""
     response = rt_response.split('\n')
     # This is the RT request status, not HTTP status per se
     if '200 Ok' in response[0]:
@@ -42,14 +42,14 @@ def split_response(rt_response):
         raise Exception("RT: response indicates failure...")
 
 
-def comment(ticket, comment, credentials, url):
+def comment(ticket, text, credentials, url):
     """Post a comment to a ticket at the url
        ticket: ticket id
        comment: comment text
        credentials: a user, pass dict
        url: base RT url"""
-    url += "/ticket/{}/comment".format(ticket)
-    content = "id: {0}\nAction: comment\nText: {1}".format(ticket, comment)
+    url = "{0}/ticket/{1}/comment".format(url, ticket)
+    content = "id: {0}\nAction: comment\nText: {1}".format(ticket, text)
     post_data = credentials
     post_data['content'] = content
     response = requests.post(url, data=post_data)
@@ -60,7 +60,12 @@ def comment(ticket, comment, credentials, url):
         return False
 
 def edit(ticket, values, credentials, url):
-    url += "/ticket/{}/edit".format(ticket)
+    """Edit a ticket
+       ticket: ticket id
+       values: a dict of ticket keys to update with corresponding values
+       credentials: a user, pass dict
+       url: base RT url"""
+    url = "{0}/ticket/{1}/edit".format(url, ticket)
     post_data = credentials
     edits = list()
     for key in values.iterkeys():
@@ -74,6 +79,11 @@ def edit(ticket, values, credentials, url):
         return False
 
 def move(ticket, queue, credentials, url, unown=True):
+    """Move a ticket
+       ticket: ticket id
+       queue: the new queue for the ticket
+       credentials: a user, pass dict
+       url: base RT url"""
     values = {"Queue": queue}
     if unown:
         values['Owner'] = "Nobody"
