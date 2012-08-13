@@ -98,9 +98,11 @@ def reset_ldap(uid):
     logging.info("psupublish=%s for uid=%s", str(psupublish[0]), uid)
 
     conn_unbind()
-    #fabric.execute for the remove operation. take the user out of each netgroup, posixgroup
-    #reset psupublish.
-    return execute(remove, (uid, config, (netgroups, posixgroups, psupublish[0])))
+    # fabric.execute for the remove operation. take the user out of each
+    # netgroup, posixgroup
+    # reset psupublish.
+    return execute(remove, (uid, config, (netgroups, posixgroups,
+                            psupublish[0])))
 
 @task
 def remove(uid, config, items):
