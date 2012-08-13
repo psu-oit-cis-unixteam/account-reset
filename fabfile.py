@@ -32,7 +32,7 @@ def _ldap_setup():
     username = "uid={0},ou=people,{1}".format(
             CONF['username'],
             CONF['ldap_basedn'])
-    logging.info("Trying to bind as %s" % username)
+    logging.info("Trying to bind as %s", username)
 
     try:
         # check the connection
