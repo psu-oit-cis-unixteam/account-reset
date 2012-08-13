@@ -18,7 +18,7 @@ def _setup(config):
                                              config['username'],
                                              config['ldap_basedn']
                                              )
-    logging.info("Trying to bind as %s" % user_dn)
+    logging.info("Trying to bind as %s", user_dn)
     try:
         # check the connection
         conn.simple_bind_s(user_dn, config['password'])
