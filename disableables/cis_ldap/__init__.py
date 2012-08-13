@@ -10,7 +10,7 @@ CONFIG = ('ldap_server', 'ldap_basedn', 'ldap_cacert', 'username', 'password')
 
 def _setup(config):
     conn = ldap.initialize(config['ldap_server'])
-    conn.protocol_version=ldap.VERSION3
+    conn.protocol_version = ldap.VERSION3
     conn.set_option(ldap.OPT_X_TLS_REQUIRE_CERT, ldap.OPT_X_TLS_DEMAND)
     conn.set_option(ldap.OPT_X_TLS_CACERTFILE, config['ldap_cacert'])
     conn.set_option(ldap.OPT_X_TLS_NEWCTX, 0)
