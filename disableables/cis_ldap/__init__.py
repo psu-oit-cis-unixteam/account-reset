@@ -63,7 +63,8 @@ def get(uid, config, callback):
                                   ['psupublish'])
     logging.info("psupublish=%s for uid=%s", str(psupublish[0]), uid)
     conn.unbind()
-    return subtask(callback).delay(uid, config, (netgroups, posixgroups, psupublish[0]))
+    return subtask(callback).delay(uid, config, (netgroups, posixgroups,
+                                                 psupublish[0]))
 
 @task(base=Disableable)
 def remove(uid, config, items):
