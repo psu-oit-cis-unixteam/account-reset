@@ -30,10 +30,9 @@ def _ldap_setup():
     conn.set_option(ldap.OPT_X_TLS_CACERTFILE, CONF['ldap_cacert'])
     conn.set_option(ldap.OPT_X_TLS_NEWCTX, 0)
     username = "uid={0},ou=people,{1}".format(
-            CONF['username']),
-            CONF['ldap_basedn']
-    )
-    logging.info("Trying to bind as %s" % username
+            CONF['username'],
+            CONF['ldap_basedn'])
+    logging.info("Trying to bind as %s" % username)
 
     try:
         # check the connection
