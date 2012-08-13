@@ -20,12 +20,12 @@ def _config(config='./config.yaml'):
         return yaml.load(config_file)
 
 #add config file as global
-CONF=_config()
+CONF = _config()
 
 def _ldap_setup():
     '''setup an ldap connection from the current conf.'''
     conn = ldap.initialize(CONF['ldap_server'])
-    conn.protocol_version=ldap.VERSION3
+    conn.protocol_version = ldap.VERSION3
     conn.set_option(ldap.OPT_X_TLS_REQUIRE_CERT, ldap.OPT_X_TLS_DEMAND)
     conn.set_option(ldap.OPT_X_TLS_CACERTFILE, CONF['ldap_cacert'])
     conn.set_option(ldap.OPT_X_TLS_NEWCTX, 0)
@@ -89,7 +89,7 @@ def reset_ldap(uid):
         #we do not want to remove this group, so ditch it from the list
         del posixgroups[uid_group_index]
 
-    logging.info("%s has groups'%s'",uid,str(posixgroups))
+    logging.info("%s has groups'%s'", uid, str(posixgroups))
     psupublish = conn.search_s(
             CONF['ldap_basedn'],
             ldap.SCOPE_SUBTREE,
