@@ -9,6 +9,12 @@ import logging
 CONFIG = ('ldap_server', 'ldap_basedn', 'ldap_cacert', 'username', 'password')
 
 def _setup(config):
+    """Returns an LDAPObject, ready to use.
+
+    argument:
+    config -- a dict of ldap_server, ldap_basedn, ldap_cacert, username, and
+    password 
+    """
     conn = ldap.initialize(config['ldap_server'])
     conn.protocol_version = ldap.VERSION3
     conn.set_option(ldap.OPT_X_TLS_REQUIRE_CERT, ldap.OPT_X_TLS_DEMAND)
