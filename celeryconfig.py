@@ -6,6 +6,7 @@ from pkgutil import iter_modules as pkg_iter
 import imp
 import logging
 
+
 def get_implementations(parent_package, fullname=True):
     """Enumerate the modules in parent_package"""
     _, path, _ = imp.find_module(parent_package)

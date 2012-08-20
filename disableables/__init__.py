@@ -2,6 +2,7 @@ import logging
 
 from celery.task import Task
 
+
 class DisableableDebug(Task):
     abstract = True
 

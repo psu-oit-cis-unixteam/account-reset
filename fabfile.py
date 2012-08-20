@@ -4,15 +4,18 @@ import rt
 import yaml
 import logging
 
+
 @task
 def clean():
     '''get rid of compiled python elements'''
     local('find . -name "*.pyc" -exec rm -rf {} \;')
 
+
 @task
 def lint():
     '''lint python'''
     local('find . -name "*.py" | xargs pylint | tee pylint.log | less')
+
 
 def _config(config='./config.yaml'):
     '''import config file'''
@@ -21,6 +24,7 @@ def _config(config='./config.yaml'):
 
 #add config file as global
 CONF = _config()
+
 
 def _ldap_setup():
     '''setup an ldap connection from the current conf.'''
@@ -42,6 +46,7 @@ def _ldap_setup():
     finally:
         return conn
 
+
 @task
 def do_resets():
     '''gets a list of requests and then fab.execute's each item from the
@@ -52,6 +57,7 @@ def do_resets():
         print "RT#{0}: resetting {1}".format(ticket, uid)
         execute(reset_ldap, uid)
 
+
 @task
 def get_requests():
     '''uses credentials from the current conf to query rt for acct reset
@@ -61,10 +67,11 @@ def get_requests():
     credentials['pass'] = CONF['rt_password']
     return rt.get(CONF['rt_query'], credentials, CONF['rt_search'])
 
+
 @task
 def reset_ldap(uid):
     '''takes uid as parameter. gets lists of netgroups and posixgroups user
-    belongs to. deletes selfname group from list of posix groups. gets 
+    belongs to. deletes selfname group from list of posix groups. gets
     psupublish. fab-executes remove.'''
     conn = _ldap_setup()
     netgroups = conn.search_s(
@@ -103,6 +110,7 @@ def reset_ldap(uid):
     # reset psupublish.
     return execute(remove, (uid, config, (netgroups, posixgroups,
                             psupublish[0])))
+
 
 @task
 def remove(uid, config, items):

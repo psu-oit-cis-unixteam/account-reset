@@ -3,6 +3,7 @@
 import logging
 import requests
 
+
 def get(query, credentials, url):
     """Query RT via the API.
     query: the RTQL query
@@ -16,6 +17,7 @@ def get(query, credentials, url):
     else:
         raise Exception("RT: Search Failed")
 
+
 def parse_search(response):
     """Parse RT search results for account reset requests.
     response: an RT API response"""
@@ -27,6 +29,7 @@ def parse_search(response):
         uid = req.split(' ')[-1]
         logging.debug('RT: Yielding ticket=%s and user=%s', ticket, uid)
         yield (ticket, uid)
+
 
 def split_response(rt_response):
     """RT sends it's own 'status' in addition to content.
@@ -59,6 +62,7 @@ def comment(ticket, text, credentials, url):
     else:
         return False
 
+
 def edit(ticket, values, credentials, url):
     """Edit a ticket
        ticket: ticket id
@@ -77,6 +81,7 @@ def edit(ticket, values, credentials, url):
         return True
     else:
         return False
+
 
 def move(ticket, queue, credentials, url, unown=True):
     """Move a ticket

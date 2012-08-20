@@ -9,8 +9,9 @@ from imp import find_module, load_module
 from time import sleep
 import logging
 import yaml
-    
+
 IMPLEMENTATIONS = get_implementations('disableables', False)
+
 
 def main():
     """Load a config, load modules, get tasks from RT dispatch disable tasks
@@ -22,7 +23,7 @@ def main():
         format='[account-disable %(levelname)s] %(asctime)s: %(message)s',
         level=config['log_level'],
     )
-    
+
     credentials = dict()
     credentials['user'] = config['rt_username']
     credentials['pass'] = config['rt_password']
