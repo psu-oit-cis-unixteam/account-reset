@@ -125,7 +125,7 @@ def remove(uid, config, items):
         logging.debug('Queueing removal of uid=%s from netgroup=%s', uid, dn)
     mods[userdn] = (ldap.MOD_REPLACE,  'psuPublish', 'no')
     logging.info('Modifications for uid=%s is modlist=%s', uid, str(mods))
-    success = list()
+    successes = list()
     for dn in mods.iterkeys():
         try:
             ldap.modify_s(dn, [mods[dn]])
@@ -133,7 +133,7 @@ def remove(uid, config, items):
             logging.error('Failed to modify dn={0} with mods={1!r}'.format(dn, mods[dn]))
         else:
             successes.append('Modified dn={0} with mods={1!r}'.format(dn, mods[dn]))
-    if len(success) > 0:
+    if len(successes) > 0:
         return "\n".join(successes)
 
 if __name__ == '__main__':
