@@ -64,6 +64,15 @@ def _setup(config):
 
 @task
 def disable(ticket, uid, config):
+    """Disables LDAP permissions for user.
+
+    Wraps get(), calling the remove task
+
+    arguments:
+    ticket -- RT ticket id
+    uid -- UID of user whose permissions will be removed
+    config -- a dict of LDAP configuration
+    """
     print "RT#{0}: disabling LDAP permissions for {1}".format(ticket, uid)
     return get_ent.delay(uid, config=config, callback=subtask(remove)).get()
 
