@@ -33,8 +33,8 @@ def main():
         vars()[module] = load_module(parent, fhn, filename, description)
 
     # get reset requests from rt
-    query, search = (config['rt_query'], config['rt_search'])
-    for reset in rt.get(query, credentials, search):
+    query, uri = (config['rt_query'], config['rt_uri'])
+    for reset in rt.get(query, credentials, uri):
         ticket, uid = reset
         logging.info('Working on ticket=%s for uid=%s', ticket, uid)
         tasks = dict()
@@ -51,8 +51,15 @@ def main():
             done = list()
             for ticket in tasks.iterkeys():
                 uid, task = tasks[ticket]
-                if task.status == "SUCCESS":
-                    print "RT#{0}: {1} is {2}".format(ticket, uid, task.status)
+                if task.successful():
+                    comment = "RT#{0}: Success!\n{1}".format(ticket, task.get())
+                    #rt.comment(ticket, comment, credentials, uri)
+                    #rt.move(ticket, 'cis-windows', credentials, uri)
+                    done.append(ticket)
+                    print comment
+                if task.failed():
+                    comment = "RT#{0}: Failed!\n{1}".format(ticket, task.get())
+                    # but we don't do retry yet... so...
                     done.append(ticket)
             # can't delete dict items during iteration, causes runtime error
             for ticket in done:
