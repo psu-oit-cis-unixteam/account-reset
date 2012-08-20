@@ -37,12 +37,13 @@ import logging
 # configuration details this task will need from dispatch
 CONFIG = ('ldap_server', 'ldap_basedn', 'ldap_cacert', 'username', 'password')
 
+
 def _setup(config):
     """Returns an LDAPObject, ready to use.
 
     argument:
     config -- a dict of ldap_server, ldap_basedn, ldap_cacert, username, and
-    password 
+    password
     """
     conn = ldap.initialize(config['ldap_server'])
     conn.protocol_version = ldap.VERSION3
@@ -62,6 +63,7 @@ def _setup(config):
     finally:
         return conn
 
+
 @task
 def disable(ticket, uid, config):
     """Disables LDAP permissions for user.
@@ -75,6 +77,7 @@ def disable(ticket, uid, config):
     """
     print "RT#{0}: disabling LDAP permissions for {1}".format(ticket, uid)
     return get_ent.delay(uid, config=config, callback=subtask(remove)).get()
+
 
 @task
 def get_ent(uid, config, callback):
@@ -110,6 +113,7 @@ def get_ent(uid, config, callback):
     return subtask(callback).delay(uid, config, (netgroups, posixgroups,
                                                  psupublish[0]))
 
+
 @task
 def remove(uid, config, items):
     netgroups, posixgroups, (userdn, psupublish) = items
@@ -130,9 +134,11 @@ def remove(uid, config, items):
         try:
             ldap.modify_s(dn, [mods[dn]])
         except Exception:
-            logging.error('Failed to modify dn={0} with mods={1!r}'.format(dn, mods[dn]))
+            logging.error('Failed to modify dn={0} with mods={1!r}'.format(dn,
+                          mods[dn]))
         else:
-            successes.append('Modified dn={0} with mods={1!r}'.format(dn, mods[dn]))
+            successes.append('Modified dn={0} with mods={1!r}'.format(dn,
+                             mods[dn]))
     if len(successes) > 0:
         return "\n".join(successes)
 
