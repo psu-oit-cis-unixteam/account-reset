@@ -1,4 +1,3 @@
-from disableables import Disableable
 from celery.task.sets import subtask
 from celery.task import task
 
@@ -27,13 +26,13 @@ def _setup(config):
     finally:
         return conn
 
-@task(base=Disableable)
+@task
 def disable(ticket, uid, config):
     print "RT#{0}: disabling LDAP permissions for {1}".format(ticket, uid)
-    return get.delay(uid, config=config, callback=subtask(remove))
+    return get_ent.delay(uid, config=config, callback=subtask(remove)).get()
 
-@task(base=Disableable)
-def get(uid, config, callback):
+@task
+def get_ent(uid, config, callback):
     conn = _setup(config)
     netgroups   =   conn.search_s(config['ldap_basedn'],
                                   ldap.SCOPE_SUBTREE,
@@ -51,7 +50,7 @@ def get(uid, config, callback):
         uid_group_index = posixgroups.index(uid_group)
     except ValueError:
         # woah funky
-        logging.error("uid=%s lacks a selfsame group=%s", uid, uid_group)
+        logging.error("uid=%s lacks a group=%s", uid, uid_group)
     else:
         # we do not want to remove this group, so ditch it from the list
         del posixgroups[uid_group_index]
@@ -66,7 +65,7 @@ def get(uid, config, callback):
     return subtask(callback).delay(uid, config, (netgroups, posixgroups,
                                                  psupublish[0]))
 
-@task(base=Disableable)
+@task
 def remove(uid, config, items):
     netgroups, posixgroups, (userdn, psupublish) = items
     nistriple = "(-,{},-)".format(uid)
@@ -81,5 +80,13 @@ def remove(uid, config, items):
         logging.debug('Queueing removal of uid=%s from netgroup=%s', uid, dn)
     mods[userdn] = (ldap.MOD_REPLACE,  'psuPublish', 'no')
     logging.info('Modifications for uid=%s is modlist=%s', uid, str(mods))
-    # just always return true for now
-    return True
+    success = list()
+    for dn in mods.iterkeys():
+        try:
+            ldap.modify_s(dn, [mods[dn]])
+        except Exception:
+            logging.error('Failed to modify dn={0} with mods={1!r}'.format(dn, mods[dn]))
+        else:
+            successes.append('Modified dn={0} with mods={1!r}'.format(dn, mods[dn]))
+    if len(success) > 0:
+        return "\n".join(successes)
