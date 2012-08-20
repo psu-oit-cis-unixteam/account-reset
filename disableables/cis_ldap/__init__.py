@@ -1,5 +1,35 @@
-from celery.task.sets import subtask
-from celery.task import task
+if __name__ == '__main__':
+    class task(object):
+        """A neutered implementation of celeryd's @task"""
+        def __init__(self, f, *args, **kwargs):
+            """f is the callable, the rest is any args at invokation"""
+            self.f = f
+            self.args = args
+            self.kwargs = kwargs
+
+        def __call__(self, *args, **kwargs):
+            """actually call f() on the args"""
+            self.f(*args, **kwargs)
+            #TODO: log args
+            logging.debug("Running fake task decorator around: %s", f)
+
+        def delay(self, *args, **kwargs):
+            """If we haven't had args for f() before, set and return self."""
+            self.args = args
+            self.kwargs = kwargs
+            return self
+
+        def get(self):
+            """actually call"""
+            self.__call__(self, *self.args, **self.kwargs)
+
+    class subtask(task):
+        """In this simplification, this is identical to task()"""
+        pass
+
+else:
+    from celery.task.sets import subtask
+    from celery.task import task
 
 import ldap
 import logging
@@ -90,3 +120,7 @@ def remove(uid, config, items):
             successes.append('Modified dn={0} with mods={1!r}'.format(dn, mods[dn]))
     if len(success) > 0:
         return "\n".join(successes)
+
+if __name__ == '__main__':
+    #TODO: load and use the config
+    disable("12345", "meow", "emwo")
